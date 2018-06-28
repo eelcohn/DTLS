@@ -9,6 +9,7 @@
 
 const int		SOCKET_TIMEOUT_S = 1;
 const int		SOCKET_TIMEOUT_US = 0;
+const int		SSL_SECURITY_LVL = 5;
 extern const char	*SSL_CIPHERS;
 extern const char	*SSL_SIGALGS;
 extern const char	*DHFILE;
@@ -31,6 +32,9 @@ namespace libdtls {
 		SSL_load_error_strings();
 		ERR_load_BIO_strings();
 		OpenSSL_add_all_algorithms();
+
+		/* Set OpenSSL security level */
+		SSL_CTX_set_security_level(ctx, SSL_SECURTIY_LVL);
 
 		/* Set OpenSSL context to DTLS 1.2 */
 #if (OPENSSL_VERSION_NUMBER < 0x10100000L)
