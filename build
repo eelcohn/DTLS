@@ -1,0 +1,41 @@
+# RSA keysize; for OpenSSL v1.1.0 and lower
+OPENSSL_KEYSIZE=4096
+# EC curve x25519; for OpenSSL 1.1.1 and above
+OPENSSL_ECDHCURVE=X25519
+OPENSSL_EXPIRE=3650
+OPENSSL_CERTSDIR=.
+OPENSSL_SERVERSUBJ="/C=UK/ST=Cambridgeshire/L=Cambridge/O=Acorn/OU=Server"
+OPENSSL_CLIENTSUBJ="/C=UK/ST=Cambridgeshire/L=Cambridge/O=Acorn/OU=Client"
+CA_KEY=ca-key.pem
+CA_CERT=ca-cert.pem
+CLIENT_KEY=client-key.pem
+CLIENT_CERT=client-cert.pem
+SERVER_KEY=server-key.pem
+SERVER_CERT=server-cert.pem
+
+if [ ! -f ${OPENSSL_CA_DIR}/${SERVER_CERT} ]; then
+	# Create new Diffie-Hellmann parameters
+#	openssl dhparam -out dh4096.pem 4096
+
+	# Create CA certificate
+	openssl genrsa ${OPENSSL_KEYSIZE} > ${OPENSSL_CERTSDIR}/${CA_KEY}
+	openssl req -x509 -sha512 -newkey rsa:${OPENSSL_KEYSIZE} -days ${OPENSSL_EXPIRE} -nodes -subj ${OPENSSL_SERVERSUBJ} -keyout ${OPENSSL_CERTSDIR}/${CA_KEY} -out ${OPENSSL_CERTSDIR}/${CA_CERT}
+
+	# Create server certificate, remove passphrase, and sign it
+	# server-cert.pem = public key, server-key.pem = private key
+	openssl req -x509 -sha512 -newkey rsa:${OPENSSL_KEYSIZE} -days ${OPENSSL_EXPIRE} -nodes -subj ${OPENSSL_SERVERSUBJ} -keyout ${OPENSSL_CERTSDIR}/${SERVER_KEY} -out ${OPENSSL_CERTSDIR}/${SERVER_CERT}
+#	openssl req -x509 -sha512 -newkey ec -pkeyopt ec_paramgen_curve:${OPENSSL_ECDHCURVE} -days ${OPENSSL_EXPIRE} -nodes -subj ${OPENSSL_SUBJ} -keyout ${OPENSSL_CERTSDIR}/${SERVER_KEY} -out ${OPENSSL_CERTSDIR}/${SERVER_CERT}
+	# Remove the passphrase from the key
+	openssl rsa -in ${OPENSSL_CERTSDIR}/${SERVER_KEY} -out ${OPENSSL_CERTSDIR}/${SERVER_KEY}
+	openssl ca -cert ${OPENSSL_CERTSDIR}/${CA_CERT} -key ${OPENSSL_CERTSDIR}/${CA_KEY} -policy policy_anything -out ${OPENSSL_CERTSDIR}/${SERVER_CERT} -infiles ${OPENSSL_CERTSDIR}/server-req.pem
+
+	# Create client certificate
+	openssl req -x509 -sha512 -newkey rsa:${OPENSSL_KEYSIZE} -days ${OPENSSL_EXPIRE} -nodes -subj ${OPENSSL_CLIENTSUBJ} -keyout ${OPENSSL_CERTSDIR}/${CLIENT_KEY} -out ${OPENSSL_CERTSDIR}/${CLIENT_CERT}
+#	openssl req -x509 -sha512 -newkey ec -pkeyopt ec_paramgen_curve:${OPENSSL_ECDHCURVE} -days ${OPENSSL_EXPIRE} -nodes -subj ${OPENSSL_SUBJ} -keyout ${OPENSSL_CERTSDIR}/${CLIENT_KEY} -out ${OPENSSL_CERTSDIR}/${CLIENT_CERT}
+	# Remove the passphrase from the key
+	openssl rsa -in ${OPENSSL_CERTSDIR}/${CLIENT_KEY} -out ${OPENSSL_CERTSDIR}/${CLIENT_KEY}
+	openssl ca -cert ${OPENSSL_CERTSDIR}/${CA_CERT} -policy policy_anything -out ${OPENSSL_CERTSDIR}/${SERVER_CERT} -infiles ${OPENSSL_CERTSDIR}/server-req.pem
+
+fi
+LANG=EN_en gcc server-dtls.cpp libdtls.cpp -o server-dtls -lssl -lcrypto -Wall
+
