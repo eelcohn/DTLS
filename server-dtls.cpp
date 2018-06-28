@@ -36,7 +36,9 @@ int main(int argc, char** argv) {
 	socklen_t	client_len;
 	char		buff[MAXLEN];		/* SSL_read buffer */
 	char		ipAddress[INET_ADDRSTRLEN];
-	SSL*		ssl = NULL;
+	SSL		*ssl = NULL;
+	X509		*cert;			/* Placeholder for peer (client) certificate */
+	STACK_OF(X509)	*sk;			/* Placeholder for peer (client) certificate chain */
 
 
 	/* Initialize SSL Engine and context */
@@ -93,14 +95,19 @@ int main(int argc, char** argv) {
 			printf("%s handshake completed; secure connection established, using cipher %s (%d bits)\n", SSL_get_cipher_version(ssl), SSL_get_cipher_name(ssl), SSL_get_cipher_bits(ssl, NULL));
 
 			/* Verify the client certificate */
-			X509 *cert = SSL_get_peer_certificate(ssl);
-			if (SSL_get_verify_result(ssl) == X509_V_OK) {
-				STACK_OF(X509) *sk = SSL_get_peer_cert_chain(ssl);
-				if ((cert = SSL_get_peer_certificate(ssl)) != NULL) {
-					printf("Client certificate's subject: %s", X509_NAME_oneline(X509_get_subject_name(cert), NULL, 0));
-					printf("Client certificate's issuer: %s", X509_NAME_oneline(X509_get_issuer_name(cert), NULL, 0));
-					printf("Client certificate's signature algorithm: %i", X509_get0_tbs_sigalg(cert));
+			if ((cert = SSL_get_peer_certificate(ssl)) != NULL) {
+				X509_print_ex_fp(stdout, x509, XN_FLAG_COMPAT, X509_FLAG_COMPAT);
+				if (SSL_get_verify_result(ssl) == X509_V_OK) {
+					printf("Client certificate is valid\n");
+					sk = SSL_get_peer_cert_chain(ssl);
+//					printf("Client certificate's subject: %s", X509_NAME_oneline(X509_get_subject_name(cert), NULL, 0));
+//					printf("Client certificate's issuer: %s", X509_NAME_oneline(X509_get_issuer_name(cert), NULL, 0));
+//					printf("Client certificate's signature algorithm: %i", X509_get0_tbs_sigalg(cert));
+				} else {
+					printf("Client certificate is valid\n");
 				}
+			} else {
+				printf("No client certificate received\n");
 			}
 			X509_free(cert);
 
