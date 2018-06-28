@@ -34,7 +34,7 @@ namespace libdtls {
 		OpenSSL_add_all_algorithms();
 
 		/* Set OpenSSL security level */
-		SSL_CTX_set_security_level(ctx, SSL_SECURTIY_LVL);
+		SSL_CTX_set_security_level(ctx, SSL_SECURITY_LVL);
 
 		/* Set OpenSSL context to DTLS 1.2 */
 #if (OPENSSL_VERSION_NUMBER < 0x10100000L)

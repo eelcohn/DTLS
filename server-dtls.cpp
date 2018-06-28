@@ -96,7 +96,7 @@ int main(int argc, char** argv) {
 
 			/* Verify the client certificate */
 			if ((cert = SSL_get_peer_certificate(ssl)) != NULL) {
-				X509_print_ex_fp(stdout, x509, XN_FLAG_COMPAT, X509_FLAG_COMPAT);
+				X509_print_ex_fp(stdout, cert, XN_FLAG_COMPAT, X509_FLAG_COMPAT);
 				if (SSL_get_verify_result(ssl) == X509_V_OK) {
 					printf("Client certificate is valid\n");
 					sk = SSL_get_peer_cert_chain(ssl);
