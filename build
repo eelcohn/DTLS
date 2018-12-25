@@ -13,7 +13,7 @@ CLIENT_CERT=client-cert.pem
 SERVER_KEY=server-key.pem
 SERVER_CERT=server-cert.pem
 
-if [ ! -f ${OPENSSL_CA_DIR}/${SERVER_CERT} ]; then
+if [ ! -f ${OPENSSL_CERTSDIR}/${SERVER_CERT} ]; then
 	# Create new Diffie-Hellmann parameters
 #	openssl dhparam -out dh4096.pem 4096
 
@@ -37,5 +37,7 @@ if [ ! -f ${OPENSSL_CA_DIR}/${SERVER_CERT} ]; then
 	openssl ca -cert ${OPENSSL_CERTSDIR}/${CA_CERT} -policy policy_anything -out ${OPENSSL_CERTSDIR}/${SERVER_CERT} -infiles ${OPENSSL_CERTSDIR}/server-req.pem
 
 fi
-LANG=EN_en gcc server-dtls.cpp libdtls.cpp -o server-dtls -lssl -lcrypto -Wall
+LANG=EN_en gcc dtls-server.cpp dtls.cpp -o dtls-server -lssl -lcrypto -Wall -Wextra -Wpedantic -g
+#LANG=EN_en gcc dtls-server-no-bio.cpp dtls.cpp -o dtls-server-no-bio -lssl -lcrypto -Wall -Wextra -Wpedantic -g
+#LANG=EN_en gcc dtls-client.cpp dtls.cpp -o dtls-client -lssl -lcrypto -Wall -Wextra -Wpedantic -g
 
